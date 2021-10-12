@@ -235,6 +235,20 @@ public class PurePursuitRobotMovement6_Quad2 {
 
 
     double shooterVeloc = -1300;
+
+
+    double robotAngle = 0;
+    double fieldAngle = 0;
+    double fieldAngleRad = 0;
+    double targetX = 0;
+    double targetY = 0;
+
+    double lookaheadX = 0;
+    double lookAheadY = 0;
+
+    double robotLocationX = 0;
+    double robotLocationY = 0;
+
     //1000
 
 
@@ -411,6 +425,36 @@ public class PurePursuitRobotMovement6_Quad2 {
 
         return robotAngleToField;
     }
+
+    public double [] calculateTargetPoint(double distance, double angle){
+
+        for (int i = 1; i <= 1; i++) {
+            double [] robotLocationXY = findDisplacementOptical();
+            robotLocationX = robotLocationXY[4];
+            robotLocationY = robotLocationXY[5];
+        }
+
+        double robotAngle = getAngle();
+        fieldAngle = angle + robotAngle + 90;
+        fieldAngleRad = Math.toRadians(fieldAngle);
+
+        targetX = distance * Math.cos(fieldAngleRad) + robotLocationX;
+        targetY = distance * Math.sin(fieldAngleRad) + robotLocationY;
+
+        lookaheadX = (distance + 40) * Math.cos(fieldAngleRad) + robotLocationX;
+        lookAheadY = (distance + 40) * Math.sin(fieldAngleRad) + robotLocationY;
+
+        double [] visionPurePursuitPoints = {robotLocationX, robotLocationY, targetX, targetY, lookaheadX, lookAheadY};
+        if (debugFlag) {
+                RobotLog.d("calculateTargetPoint - fieldAngle %f, fieldAngleRad %f, robotLocationX %f, robotLocationY %f, targetX %f, targetY %f, lookaheadX %f, lookaheadY %f",
+                        fieldAngle, fieldAngleRad, robotLocationX, robotLocationY, targetX, targetY, lookaheadX, lookAheadY);
+            }
+
+        return visionPurePursuitPoints;
+
+    }
+
+
 
     public void goToPosition(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed, double parkDistance, double parkRadius){
 //        startTime = runtime;
