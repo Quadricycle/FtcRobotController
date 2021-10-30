@@ -69,7 +69,7 @@ public class NerdPID_PurePursuit {
 //        }
         //calculate delta error (Derivative)
         derError = ((targetAngle - gyroAngle) - prevDerError) / deltaTimePID;
-        prevDerError = derError;
+        prevDerError = (targetAngle - gyroAngle);
 
         double zPowerPID = (propError * kP) + (intError * kI) + (derError * kD);
 
@@ -79,8 +79,8 @@ public class NerdPID_PurePursuit {
 
     public static double zPowerDrive (double targetAngleDrive, double gyroAngleDrive, double deltaTimePIDDrive){
 
-        double kPD = 0.005; //0.010
-        double kID = 0.003; //0.005
+        double kPD = 0.010; //0.010
+        double kID = 0.002; //0.005
         double kDD = 0.000; //0.000
 
         //calculate error (Proportional)
@@ -96,7 +96,7 @@ public class NerdPID_PurePursuit {
 //        }
         //calculate delta error (Derivative)
         derErrorD = ((targetAngleDrive - gyroAngleDrive) - prevDerErrorD) / deltaTimePIDDrive;
-        prevDerErrorD = derErrorD;
+        prevDerErrorD = (targetAngleDrive - gyroAngleDrive);
 
 //        double robotTurnSpeedFF = Range.clip((zPowerStart + zPowerIncrease), -0.5, 0);
 //        zPowerStart = robotTurnSpeedFF;
@@ -132,7 +132,7 @@ public class NerdPID_PurePursuit {
 //        }
         //calculate delta error (Derivative)
         derErrorP = ((targetAnglePark - gyroAnglePark) - prevDerErrorP) / deltaTimePIDPark;
-        prevDerErrorP = derErrorP;
+        prevDerErrorP = (targetAnglePark - gyroAnglePark);
 
         double zPowerPIDP = (propErrorP * kPP) + (intErrorP * kIP) + (derErrorP * kDP);
 

@@ -75,6 +75,7 @@ public class PurePursuitRobotMovement6_Quad2 {
     public Acceleration gravity;
 
     public Orientation lastAngles = new Orientation();
+    public Acceleration robotAccel = new Acceleration();
 
     private double robotAngleToField = 0;
     private double robotAngleToTarget = 0;
@@ -316,7 +317,7 @@ public class PurePursuitRobotMovement6_Quad2 {
 
         resetAngle();
 
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        this.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
         this.frontEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         this.rightEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -426,6 +427,15 @@ public class PurePursuitRobotMovement6_Quad2 {
         return robotAngleToField;
     }
 
+    private double [] getRobotAccel() {
+
+        Acceleration robotAccel = imu.getAcceleration();
+        double [] accel = {robotAccel.xAccel, robotAccel.yAccel, robotAccel.zAccel};
+
+        return accel;
+
+    }
+
     public double [] calculateTargetPoint(double distance, double angle){
 
         for (int i = 1; i <= 1; i++) {
@@ -444,7 +454,7 @@ public class PurePursuitRobotMovement6_Quad2 {
         lookaheadX = (distance + 40) * Math.cos(fieldAngleRad) + robotLocationX;
         lookAheadY = (distance + 40) * Math.sin(fieldAngleRad) + robotLocationY;
 
-        double [] visionPurePursuitPoints = {robotLocationX, robotLocationY, targetX, targetY, lookaheadX, lookAheadY};
+        double [] visionPurePursuitPoints = {robotLocationX, robotLocationY, targetX, targetY, lookaheadX, lookAheadY, fieldAngle};
         if (debugFlag) {
                 RobotLog.d("calculateTargetPoint - fieldAngle %f, fieldAngleRad %f, robotLocationX %f, robotLocationY %f, targetX %f, targetY %f, lookaheadX %f, lookaheadY %f",
                         fieldAngle, fieldAngleRad, robotLocationX, robotLocationY, targetX, targetY, lookaheadX, lookAheadY);
@@ -880,7 +890,7 @@ public class PurePursuitRobotMovement6_Quad2 {
             distanceToEndPoint = Math.hypot(endPoint.x - robotPositionXYV[4], endPoint.y - robotPositionXYV[5]);
 
             if(distanceToEndPoint < distanceToPark){
-                goToPositionEndPP(endPoint.x, endPoint.y, 1.0, parkAngleTarget, 0.2, distanceToPark);
+                goToPositionEndPPEM(endPoint.x, endPoint.y, 1.0, parkAngleTarget, 0.2, distanceToPark);
             }
             else {
                 goToPositionPP(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed, parkAngleTarget);
@@ -1080,16 +1090,8 @@ public class PurePursuitRobotMovement6_Quad2 {
     }
 
     public void goToPositionEndPP(double x, double y, double movementSpeed, double targetAngleForPark, double turnSpeed, double distanceToEndPoint){
-//        startTime = runtime;
 
-//        distanceToTarget = 10;
         distanceToTargetAngle = getAngle() + 90;
-
-//        double [] robotPositionXYOpticalInit = findDisplacementOptical();
-//        xPositionOpticalInit = robotPositionXYOpticalInit[4];
-//        yPositionOpticalInit = robotPositionXYOpticalInit[5];
-
-        //First calculate motor speeds for linear (x, y) motion
 
         currentTime = elapsedTime.seconds();
         loopTime = currentTime - oldTime;
@@ -1184,26 +1186,6 @@ public class PurePursuitRobotMovement6_Quad2 {
         rearLeftMotor.setPower(motorSpeedCommand[2]);
 
 
-
-
-//            if (debugFlag) {
-//                RobotLog.d("goToPosition - timeSinceStart %f, robotTargetAngle %f, xPower %f, yPower %f , zPower %f, frontLeftMotorPower %f, rearRightMotorPower %f , frontRightMotorPower %f, rearLeftMotorPower %f, frontLeftMotorTicks %f, rearRightMotorTicks %f , frontRightMotorTicks %f , rearLeftMotorTicks %f, xPosition %f, yPosition %f, robotRot %f, robotRotDisplacement %f, robotAngleToTarget %f, robotVectorByOdoF %f, robotVectorByOdoR %f, frontVectorMag %f, rearVectorMag %f",
-//                        deltaTime, robotTargetAngle, xPower, yPower, zPower, frontLeftMotorPower, rearRightMotorPower, frontRightMotorPower, rearLeftMotorPower, lfDisplacement, rrDisplacement, rfDisplacement, lrDisplacement, xPosition, yPosition, robotRot, robotRotDisplacement, robotAngleToTarget, robotVectorByOdoF, robotVectorByOdoR, frontVectorMag, rearVectorMag);
-//            }
-
-        // channels to record for velocity following
-//            if (debugFlag) {
-//                RobotLog.d("goToPosition - deltaTime %f, frontLeftMotorTarget %f, frontLeftMotorSpeed %f, frontRightMotorTarget %f, frontRightMotorSpeed %f, rearLeftMotorTarget %f, rearLeftMotorSpeed %f, rearRightMotorTarget %f, rearRightMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorPower %f, rearLeftMotorPower %f, rearRightMotorPower %f, robotTargetAngle %f, robotAngleToTarget %f, zPIDAngle %f, relativeTurnAngle %f, xPosition %f, yPosition %f, frontOpticalEncoder %f, rightOpticalEncoder %f, leftOpticalEncoder %f, backOpticalEncoder %f, xPositionOpt %f, yPositionOpt %f, omniDriveFactorOpt %f",
-//                        deltaTime, frontLeftMotorTarget, frontLeftMotorSpeed, frontRightMotorTarget, frontRightMotorSpeed, rearLeftMotorTarget, rearLeftMotorSpeed, rearRightMotorTarget, rearRightMotorSpeed, motorSpeedCommand [0], motorSpeedCommand [1], motorSpeedCommand [2], motorSpeedCommand [3], robotTargetAngle, robotAngleToTarget, zPIDAngle, relativeTurnAngle, robotPositionXY[0], robotPositionXY[1], robotPositionXYOptical[0], robotPositionXYOptical [1], robotPositionXYOptical [2], robotPositionXYOptical[3], robotPositionXYOptical[4], robotPositionXYOptical[5], omniDriveFactorOpt);
-//            }
-
-//            // channels to record to debug optical encoder field centric driving
-//            if (debugFlag) {
-//                RobotLog.d("goToPositionEndPP - deltaTime %f, robotXdisplacementOpt %f, robotYdisplacementOpt %f, robotVectorByOdoOpt %f, robotVectorByOdo %f, robotVectorMagOpt %f, robotVectorMag %f, robotFieldAngleOpt %f, robotFieldAngle %f, relativeTurnAngle %f, robotAngleToTarget %f, robotTargetAngle %f, xPositionOpt %f, xPosition %f, yPositionOpt %f, yPosition %f, omniDriveFactorOpt %f, omniDriveFactor %f, distanceToTarget %f, robotTargetSpeed %f, zPIDPower %f, zSpeedTargetAngle %f, zPIDAngle %f, distanceToTargetAngle %f",
-//                        deltaTime, robotXdisplacementOpt, robotYdisplacementOpt, robotVectorByOdoOpt, robotVectorByOdo, robotVectorMagOpt, robotVectorMag, robotFieldAngleOpt, robotFieldAngle, relativeTurnAngle, robotAngleToTarget, robotTargetAngle, xPositionOpt, xPosition, yPositionOpt, yPosition, omniDriveFactorOpt, omniDriveFactor, distanceToTarget, robotTargetSpeed, zPower, zSpeedTargetAngle, zPIDAngle, distanceToTargetAngle);
-//
-//            }
-
         // channels to record to debug optical encoder field centric driving
         if (debugFlag) {
             RobotLog.d("goToPositionEndPP - runTime %f, deltaTime %f, distanceToTarget %f, robotTargetSpeed %f, robotTargetSpeedIPS %f, robotSpeed %f, decelRate %f, xPositionOptical %f, yPositionOptical %f, frontLeftMotorPower %f, rearRightMotorPower %f, frontRightMotorPower %f, rearLeftMotorPower %f, targetParkAngle %f, zPIDAngle %f, xPower %f, yPower %f, zPower %f, robotTargetSpeedPID %f, prevDistanceToTarget %f",
@@ -1213,621 +1195,118 @@ public class PurePursuitRobotMovement6_Quad2 {
 
     }
 
-    //    Puts the wobble arm down from it's original position. Used at the start of the match.
-    //    leftEncoder = wobbleMotor
-//    public void beginningDown() {
-//
-//        wobbleServo.setPosition(0);
-//        opmode.sleep(300);
-//        Timer.reset();
-//        while(Timer.seconds() < 0.35) {
-//
-//            leftEncoder.setPower(0.55);
-//        }
-//        leftEncoder.setPower(0);
-//
-//        wobbleServo.setPosition(0);
-//
-//        opmode.sleep(200);
-//
-//    }
-//
-//    //Closes servo, then picks up wobble goal
-//    public void pickupWobble() {
-////        wobbleServo.setPosition(0.75);
-//
-//        wobbleServo.setPosition(1);
-//        opmode.sleep(750);
-//
-//        Timer.reset();
-//        while(Timer.seconds() < 0.75) {
-//            leftEncoder.setPower(-0.9);
-//        }
-//        leftEncoder.setPower(-0.2);
-//
-//    }
-//    //Lowers motor, then releases wobble goal
-//    public void setDownWobble() {
-//        Timer.reset();
-//        while(Timer.seconds() < 0.35) {
-//            leftEncoder.setPower(0.55);
-//        }
-//
-//        leftEncoder.setPower(0);
-//
-////        wobbleServo.setPosition(0);
-//        wobbleServo.setPosition(-1);
-//        opmode.sleep(500);
-//    }
-//
-////    public void parkWithWobble() {
-////        Timer.reset();
-////        while(Timer.seconds() < 0.35) {
-////            leftEncoder.setPower(0.55);
-////        }
-////
-////        leftEncoder.setPower(0);
-////
-////        wobbleServo.setPosition(0.37);
-////        opmode.sleep(500);
-////    }
-//
-//    public void upWobble() {
-//        wobbleServo.setPosition(0.75);
-//
-//      //  opmode.sleep(500);
-//
-//        Timer.reset();
-//        while(Timer.seconds() < 0.75) {
-//            leftEncoder.setPower(-0.9);
-//        }
-//        leftEncoder.setPower(0.0);
-//    }
+    public void goToPositionEndPPEM(double x, double y, double movementSpeed, double targetAngleForPark, double turnSpeed, double distanceToEndPoint){
 
-//    public void runShoot() {
-//        runShooterMotor(0.92);
-//        opmode.sleep(1000);
-//        indexRings();
-//
-//    }
-//
-//    //Function to run shooter motor. Run this function and then sleep for a little bit to let
-//    //the motor charge up. Then run the indexRings function
-//    //frontEncoder = shooterMotor and rightEncoder = intakeMotor
-//    public void runShooterMotor(double motorPower) {
-//        frontEncoder.setPower(motorPower);
-//    }
+        distanceToTargetAngle = getAngle() + 90;
 
-//    public void indexRings() {
-//        int count = 0;
-//        boolean cycle = true;
-//        indexingServo.setPosition(indexerHomePos);
-//        while(count < 8){
-//            double position = 0.0;
-//
-//            if (cycle) {
-//                //Make Indexer go forward
-//                position = this.indexerPushedPos;
-//                cycle = false;
-//            } else {
-//                //Make Indexer go backward
-//                position = this.indexerHomePos;
-//                cycle = true;
-//            }
-//
-//            if(count == 6 || count == 7) {
-//                rightEncoder.setPower(-1);
-//            }
-//
-//            // Set the servo to the new position and pause;
-//            indexingServo.setPosition(position);
-//            opmode.sleep(300);
-//            //sleep(1000);
-//            count++;
-//        }
-//        //Stop Motor
-//        frontEncoder.setPower(0);
-//        rightEncoder.setPower(0);
-//    }
+        currentTime = elapsedTime.seconds();
+        loopTime = currentTime - oldTime;
+        oldTime = currentTime;
+//        deltaTime = currentTime - startTime;
 
-    //Function to run shooter motor. Run this function and then sleep for a little bit to let
-//the motor charge up. Then run the indexRings function
-//    public void runShoot() {
-//
-//        if ((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 20) && this.count < 3) {
-//
-//
-//            shootTime.reset();
-//
-//            if(!(shootTime.seconds() <= 0.5)) {
-//                kickerServo.setPosition(1);
-//                indexingServo.setPosition(1);
-//            } else {
-//                shootTime.reset();
-//                if(!(shootTime.seconds() <= 0.5)) {
-//                    kickerServo.setPosition(-1);
-//                    indexingServo.setPosition(.2);
-//                } else {
-//                    shootTime.reset();
-//                }
-//
-//            }
-//
-//        }
-//
-//    }
-//
-//    public void shootThreeRings(double variableShooterVeloc) {
-//        int shooterCount = 0;
-//        while (shooterCount < 3 && !opmode.isStopRequested()) {
-//            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 20)) && !opmode.isStopRequested()) {}
-//            indexingServo.setPosition(0.65);
-//            if(shooterCount == 2) {
-//                 kickerServo.setPosition(1);
-//                 sleep(500);
-//                kickerServo.setPosition(-1);
-//                    sleep(50);
-//            }else {
-//                sleep(500);
-//            }
-//            indexingServo.setPosition(0.1);
-//            sleep(500);
-//            indexingServo.setPosition(0.65);
-//            shooterCount++;
-//
-//        }
-//
-//        rightEncoder.setPower(0); //Intake off
-//
-//
-//        //sleep(500);
-//    }
-//
-//    public void shootThreeRingsFirst(double variableShooterVeloc) {
-//        int shooterCount = 0;
-//        while (shooterCount < 3 && !opmode.isStopRequested()) {
-//            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 30)) && !opmode.isStopRequested()) {
-//                opmode.telemetry.addData("shooter speed", frontEncoder.getVelocity());
-//                opmode.telemetry.update();
-//            }
-//            indexingServo.setPosition(0.65);
-//            if(shooterCount == 2 || shooterCount == 1) {
-//                kickerServo.setPosition(1);
-//                sleep(500);
-//                kickerServo.setPosition(-1);
-//                sleep(50);
-//            }else {
-//                sleep(400);
-//            }
-//            indexingServo.setPosition(0.1);
-//            sleep(500);
-//            indexingServo.setPosition(0.65);
-//            shooterCount++;
-//
-//        }
-//
-//        rightEncoder.setPower(0); //Intake off
-//
-//
-//        //sleep(500);
-//    }
-//
-//    public void shootOneRing() {
-//            indexingServo.setPosition(0.65);
-//            kickerServo.setPosition(1);
-//            sleep(500);
-//            kickerServo.setPosition(-1);
-//            sleep(50);
-//            indexingServo.setPosition(0.1);
-//            sleep(500);
-//            indexingServo.setPosition(0.65);
-//
-//    }
+        robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
 
-//    public void indexRings() {
-//        boolean shouldIndex = false;
-//        int count = 0;
-//        boolean cycle = true;
-//        double position= 0.0;
-//        indexingServo.setPosition(indexerHomePos);
-//        while(count < 8){
-////            double position= 0.0;
-//            if(shouldIndex) {
-//                if (cycle) {
-//                    //Make Indexer go forward
-//                    position = this.indexerPushedPos;
-//                    cycle = false;
-//                } else {
-//                    //Make Indexer go backward
-//                    position = this.indexerHomePos;
-//                    cycle = true;
-//                }
-//                if (count == 6 || count == 7) {
-//                    this.rightEncoder.setPower(-1);
-//                }
-//            }
-//            // Set the servo to the new position and pause;
-//            indexingServo.setPosition(position);
-//            //checks if the velocity is within a threshold
-//            if(Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 20) {
-//                shouldIndex = true;
-//                count++;
-//            } else {
-//                shouldIndex = false;
-//            }
-//        }
-//        //Stop Motor
-//        this.frontEncoder.setVelocity(0);
-//        //this.frontEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-//        this.rightEncoder.setPower(0);
-//    }
+        robotPositionXYOptical = findDisplacementOptical();
+
+        //distanceToTarget = Math.hypot(x - robotPositionXY[0], y - robotPositionXY[1]);
+        distanceToTarget = Math.hypot(x - robotPositionXYOptical[4], y - robotPositionXYOptical[5]);
+
+        double absoluteAngleToTarget = Math.atan2(y - robotPositionXYOptical[5], x - robotPositionXYOptical[4]) * 180 / Math.PI;
+
+        
+        double [] robotAccelPP = getRobotAccel();
+        double accelX = robotAccelPP[0];
+        double accelY = robotAccelPP[1];
+        double accelZ = robotAccelPP[2];
+
+        if (distanceToEndPoint > 25) {
+            if (distanceToTarget < distanceToEndPoint && distanceToTarget > (distanceToEndPoint / 2)) {
+                robotTargetSpeed = Range.clip(movementSpeed * (distanceToTarget - (distanceToEndPoint / 2)) / 30, 0.2, 1);
+                prevDistanceToTarget = distanceToEndPoint / 2;
+            } else if (distanceToTarget < (distanceToEndPoint / 2)) {
+                robotTargetSpeedPID = NerdPID_PurePursuit.movementSpeedPID(distanceToTarget, prevDistanceToTarget, loopTime);
+                prevDistanceToTarget = distanceToTarget;
+                robotTargetSpeed = robotTargetSpeedPID;
+            }
+        }else{
+            robotTargetSpeedPID = NerdPID_PurePursuit.shortParkPID(distanceToTarget, prevDistanceToTarget, loopTime);
+            prevDistanceToTarget = distanceToTarget;
+            robotTargetSpeed = robotTargetSpeedPID;
+        }
+
+        robotTargetAngle = absoluteAngleToTarget;
+
+        robotAngleToTarget = MathFunctions.AngleWrapDeg(robotTargetAngle - getAngle());
+        motorAngleToTarget = MathFunctions.AngleWrapDeg((robotTargetAngle - 45) - getAngle());
+
+        xPower = Math.cos(motorAngleToTarget * 3.14 / 180) * robotTargetSpeed;
+        yPower = Math.sin(motorAngleToTarget * 3.14 / 180) * robotTargetSpeed;
 
 
 
+//            double relativeTurnAngle = MathFunctions.AngleWrapDeg(robotAngleToTarget - 180 + preferredAngle);
+        double relativeTurnAngle = MathFunctions.AngleWrapDeg(targetAngleForPark - 90 - getAngle());
+        double targetParkAngle = targetAngleForPark;
+        zPIDAngle = 90 + getAngle();
+        zPower = NerdPID_PurePursuit.zPowerPark(targetParkAngle, zPIDAngle, loopTime);
 
-//    public void autonEnd(double rings) {
-//
-//        double forwardSpeedX = -0.4;
-//        double forwardSpeedY = 0.5;
-//
-//        double backupSpeedX = 0.5;
-//        double backupSpeedY = -0.5;
-//
-//        double backupSpeedXSlow = 0.3;
-//        double backupSpeedYSlow = -0.3;
-//
-//        double forwardSpeedX0 = -0.5;
-//        double forwardSpeedY0 = 0.5;
-//
-//
-//
-//        resetBackEncoder();
-//
-//
-//
-//
-//        shootThreeRingsFirst(-1400); //Shoot preloaded rings. Might have to move back a bit first
-//
-//       // frontEncoder.setVelocity(0);
-//
-//        if(rings == 1) { //Pick up one Ring, fire once
-//
-//            double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
-//
-//
-//
-//            backupTime.reset();
-//            rightEncoder.setPower(-1); //Intake on
-////             while (backupTime.seconds() <= 2.25 && opmode.opModeIsActive()) {
-//            while(movingStuffIg[5] >= -25 && !opmode.isStopRequested()) {
-//
-//                movingStuffIg = findDisplacementOptical();
-//
-//                moveFunction(backupSpeedXSlow, backupSpeedYSlow, 0);
-//                opmode.telemetry.addData("encoder value ok", movingStuffIg[5]);
-//                opmode.telemetry.update();
-//
-//            } //Back up, intake ring
-//
-////            backupTime.reset();
-////            while (backupTime.seconds() <= 0.3 && opmode.opModeIsActive()) { //go back to park line
-////
-////                moveFunction(0, 0, 0); //stop moving
-////
-////            }
-//
-//            //sleep(200);
-//            //   rightEncoder.setPower(1);
-//
-//            backupTime.reset();
-//            //  while (backupTime.seconds() <= 1.1265 && opmode.opModeIsActive()) { //go back to park line
-//            while(movingStuffIg[5] <= -4 && !opmode.isStopRequested()) {
-//                movingStuffIg = findDisplacementOptical();
-//                moveFunction(forwardSpeedX, forwardSpeedY, 0);
-//
-//                opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
-//                opmode.telemetry.update();
-//
-//            }
-//
-//            backupTime.reset();
-//            while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
-//
-//                moveFunction(0, 0, 0); //stop moving
-//
-//            }
-//
-////             rightEncoder.setPower(0); //Intake off
-//
-//            frontEncoder.setVelocity(shooterSpeed);
-//
-//         //   shootThreeRings(-1325); //Shoot
-//
-//            shootOneRing();
-//
-////             rightEncoder.setPower(-1);
-////
-////             sleep(100);
-////
-////             rightEncoder.setPower(0);
-////
-////             shootOneRing(-1300);
-//
-//            setDownWobble();
-//        }
-//         else if(rings == 4) { //Pick up rings, Fire 2-3?
-//             double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
-//           //  backupTime.reset();
-//             rightEncoder.setPower(-1); //Intake on
-////             while (backupTime.seconds() <= 2.25 && opmode.opModeIsActive()) {
-//                 while(movingStuffIg[5] >= -30 && !opmode.isStopRequested()) {
-//
-//                     movingStuffIg = findDisplacementOptical();
-//
-//                 moveFunction(backupSpeedXSlow, backupSpeedYSlow, 0);
-//                 opmode.telemetry.addData("encoder value ok", movingStuffIg[5]);
-//                 opmode.telemetry.update();
-//
-//             } //Back up, intake ring
-//
-////            backupTime.reset();
-////            while (backupTime.seconds() <= 0.3 && opmode.opModeIsActive()) { //go back to park line
-////
-////                moveFunction(0, 0, 0); //stop moving
-////
-////            }
-//
-//               //sleep(200);
-//          //   rightEncoder.setPower(1);
-//
-//             backupTime.reset();
-//           //  while (backupTime.seconds() <= 1.1265 && opmode.opModeIsActive()) { //go back to park line
-//            while(movingStuffIg[5] <= -5 && !opmode.isStopRequested()) {
-//                movingStuffIg = findDisplacementOptical();
-//                 moveFunction(forwardSpeedX, forwardSpeedY, 0);
-//
-//                opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
-//                opmode.telemetry.update();
-//
-//             }
-//
-//             backupTime.reset();
-//             while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
-//
-//                 moveFunction(0, 0, 0); //stop moving
-//
-//             }
-//
-//             frontLeftMotor.setPower(0);
-//             rearRightMotor.setPower(0);
-//             frontRightMotor.setPower(0);
-//             rearLeftMotor.setPower(0);
-//
-////             rightEncoder.setPower(0); //Intake off
-//
-//             frontEncoder.setVelocity(shooterSpeed);
-//
-//             shootThreeRings(shooterSpeed); //Shoot
-//
-////             rightEncoder.setPower(-1);
-////
-////             sleep(100);
-////
-////             rightEncoder.setPower(0);
-////
-////             shootOneRing(-1300);
-//
-//            setDownWobble();
-//
-//        } else {
-//             double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
-//
-//
-//             while(movingStuffIg[5] <= 4 && !opmode.isStopRequested()) {
-//                 movingStuffIg = findDisplacementOptical();
-//                 moveFunction(forwardSpeedX0, forwardSpeedY0, 0);
-//
-//                 opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
-//                 opmode.telemetry.update();
-//
-//             }
-//
-//             backupTime.reset();
-//             while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
-//
-//                 moveFunction(0, 0, 0); //stop moving
-//
-//             }
-//         } //For 0 rings
-//
-//
-//    }
-//
-//    public void resetBackEncoder() {
-//        this.rightEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        this.leftEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        this.backEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//
-//
-//        this.rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        this.leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        this.backEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//
-//        this.rightEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        this.leftEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        this.backEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//
-//        this.rightEncoder.setDirection(DcMotor.Direction.REVERSE);
-//        this.leftEncoder.setDirection(DcMotor.Direction.REVERSE);
-//        this.backEncoder.setDirection(DcMotor.Direction.REVERSE);
-//
-//        xPosition = 0;
-//        yPosition = 0;
-//
-//        displacementX = 0;
-//        displacementY = 0;
-//
-//        this.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        this.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        this.rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        this.rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//
-//        this.frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        this.frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        this.rearLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        this.rearRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//
-//        this.frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        this.frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        this.rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        this.rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//
-//
-//
-//
-//        xPositionOpticalInit = 0;
-//        yPositionOpticalInit = 0;
-//
-//        xPositionOpt = 0;
-//        yPositionOpt = 0;
-//
-//        displacementXOptical = 0;
-//        displacementYOptical = 0;
-//
-//        prevDistanceToTarget = 20;
-//
-//        frontDisplacementOld = 0;
-//        rearDisplacementOld = 0;
-//        rightDisplacementOld = 0;
-//        leftDisplacementOld = 0;
-//        lfDisplacementOld = 0;
-//        lrDisplacementOld = 0;
-//        rfDisplacementOld = 0;
-//        rrDisplacementOld = 0;
-//        robotRotOld = 0;
-//
-//
-//
-//    }
-//
-//
-//    private void moveFunction(double xCommand, double yCommand, double zCommand) {
-//
-//        ZPID(getAngle(), zCommand);
-//
-//        double LMP = ZSpeed + xCommand;
-//        double RMP = ZSpeed - xCommand;
-//        double FMP = ZSpeed + yCommand;
-//        double BMP = ZSpeed - yCommand;
-//
-//
-//        getVelocityForCurrentLoop();
-//
-//        double frontLeftMotorSpeed = Velocities[0];
-//        double rearRightMotorSpeed = Velocities[3];
-//        double frontRightMotorSpeed = Velocities[1];
-//        double rearLeftMotorSpeed = Velocities[2];
-//        double deltaTime = Velocities[4];
-//
-////        double [] motorSpeedCommand = NerdVelocityFollowing.velocityFollowing(-targetMotorSpeed, targetMotorSpeed,
-////                targetMotorSpeed, -targetMotorSpeed, frontLeftMotorSpeed, rearRightMotorSpeed, frontRightMotorSpeed,
-////                rearLeftMotorSpeed, deltaTime);
-//
-//        double [] motorSpeedCommand = NerdVelocityFollowing.velocityFollowing(powerToSpeed(LMP), powerToSpeed(RMP), powerToSpeed(FMP), powerToSpeed(BMP), frontLeftMotorSpeed, rearRightMotorSpeed, frontRightMotorSpeed,
-//                rearLeftMotorSpeed, deltaTime);
-//
-//        frontLeftMotor.setPower(motorSpeedCommand[0]);
-//        rearRightMotor.setPower(motorSpeedCommand[3]);
-//        frontRightMotor.setPower(motorSpeedCommand[1]);
-//        rearLeftMotor.setPower(motorSpeedCommand[2]);
-//
-//    }
-//
-//
-//    public void ZPID ( double EV, double TPos) {
-//
-//        double DError = 0;
-//        int DBanMin = -1;
-//        int DBanMax = 1;
-//        int MaxError = 10;
-//        double error = 0;
-//        double speed = 0;
-//        double TotalError = 0;
-//        double PrevError = 0;
-//        double MaxSpeed = 0;
-//
-//        double kP = 0.014;
-//        double kI = 0;
-//        double kD = 0.0013;
-//
-//
-//        TotalError = ZTotalError;
-//        PrevError = ZPrevError;
-//        PIDTime = ZPIDTime;
-//        MaxSpeed = MaxSpeedZ;
-//
-//
-//
-//        //calculate error (Proportional)
-//        error = TPos - EV;
-//
-//        //Calculate Total error (Integral)
-//        TotalError = (error * PIDTime.seconds()) + TotalError;
-//
-//        //do deadban
-//        if (DBanMax > error && error > DBanMin) {
-//            error = 0;
-//            //TotalError = 0;
-//        }
-//
-//        //calculate delta error (Derivative)
-//        DError = -(EV/*error*/ - PrevError) / PIDTime.seconds();
-//
-//        //reset elapsed timer
-//        PIDTime.reset();
-//
-//        //Max total error
-//        if (Math.abs(TotalError) > MaxError) {
-//
-//
-//            if (TotalError > 0) {
-//                TotalError = MaxError;
-//            } else {
-//                TotalError = -MaxError;
-//            }
-//
-//        }
-//
-//
-//        //Calculate final speed
-//        speed = (error * kP) + (TotalError * kI) + (DError * kD);
-//
-//
-//        //Make sure speed is no larger than MaxSpeed
-//        if (Math.abs(speed) > MaxSpeed) {
-//            if (speed > 0) {
-//                speed = MaxSpeed;
-//            } else {
-//                speed = -MaxSpeed;
-//            }
-//        }
-//        PrevError = EV/*error*/;
-//
-//        ZSpeed = speed;
-//        ZPrevError = PrevError;
-//        ZTotalError = TotalError;
-//
-//
-//    }
-//
-//
-//
-//    public void revUpMotor() {
-//        frontEncoder.setVelocity(shooterSpeed);
-//    }
-//
-//
-//
+        frontLeftMotorPower = -xPower + zPower;
+        rearRightMotorPower = xPower + zPower;
+        frontRightMotorPower = yPower + zPower;
+        rearLeftMotorPower = -yPower + zPower;
+
+        if(Math.abs(frontLeftMotorPower) > Math.abs(frontRightMotorPower) && Math.abs(frontLeftMotorPower) > Math.abs(rearLeftMotorPower) && Math.abs(frontLeftMotorPower) > Math.abs(rearRightMotorPower)){
+            maxPowerEndPP = Math.abs(frontLeftMotorPower);
+        }
+        else if (Math.abs(frontRightMotorPower) > Math.abs(frontLeftMotorPower) && Math.abs(frontRightMotorPower) > Math.abs(rearLeftMotorPower) && Math.abs(frontRightMotorPower) > Math.abs(rearRightMotorPower)){
+            maxPowerEndPP = Math.abs(frontRightMotorPower);
+        }
+        else if(Math.abs(rearRightMotorPower) > Math.abs(frontRightMotorPower) && Math.abs(rearRightMotorPower) > Math.abs(rearLeftMotorPower) && Math.abs(rearRightMotorPower) > Math.abs(frontLeftMotorPower)){
+            maxPowerEndPP = Math.abs(rearRightMotorPower);
+        }
+        if(Math.abs(rearLeftMotorPower) > Math.abs(frontRightMotorPower) && Math.abs(rearLeftMotorPower) > Math.abs(frontLeftMotorPower) && Math.abs(rearLeftMotorPower) > Math.abs(rearRightMotorPower)) {
+            maxPowerEndPP = Math.abs(rearLeftMotorPower);
+        }
+
+        if(maxPowerEndPP > 1) {
+            frontLeftMotorPower /= maxPowerEndPP;
+            frontRightMotorPower /= maxPowerEndPP;
+            rearLeftMotorPower /= maxPowerEndPP;
+            rearRightMotorPower /= maxPowerEndPP;
+        }
+
+        double frontLeftMotorTarget = powerToSpeed(frontLeftMotorPower);
+        double rearRightMotorTarget = powerToSpeed(rearRightMotorPower);
+        double frontRightMotorTarget = powerToSpeed(frontRightMotorPower);
+        double rearLeftMotorTarget = powerToSpeed(rearLeftMotorPower);
+
+        getVelocityForCurrentLoop();
+
+        double frontLeftMotorSpeed = Velocities[0];
+        double rearRightMotorSpeed = Velocities[3];
+        double frontRightMotorSpeed = Velocities[1];
+        double rearLeftMotorSpeed = Velocities[2];
+        double deltaTime = Velocities[4];
+
+        double [] motorSpeedCommand = NerdVelocityFollowing.velocityFollowing(frontLeftMotorTarget, rearRightMotorTarget,
+                frontRightMotorTarget, rearLeftMotorTarget, frontLeftMotorSpeed, rearRightMotorSpeed, frontRightMotorSpeed,
+                rearLeftMotorSpeed, deltaTime);
+
+        frontLeftMotor.setPower(motorSpeedCommand[0]);
+        rearRightMotor.setPower(motorSpeedCommand[3]);
+        frontRightMotor.setPower(motorSpeedCommand[1]);
+        rearLeftMotor.setPower(motorSpeedCommand[2]);
+
+
+        // channels to record to debug optical encoder field centric driving
+        if (debugFlag) {
+            RobotLog.d("goToPositionEndPPEM - runTime %f, deltaTime %f, distanceToTarget %f, robotTargetSpeed %f, robotSpeed %f, xPositionOptical %f, yPositionOptical %f, xPower %f, yPower %f, zPower %f, xAccel %f, yAccel %f, zAccel %f",
+                    currentTime, loopTime, distanceToTarget, robotTargetSpeed, robotSpeed, xPositionOpt, yPositionOpt, xPower, yPower, zPower, accelX, accelY, accelZ);
+
+        }
+
+    }
+
     public void resetITerm() {
         NerdVelocityFollowing.resetI();
     }

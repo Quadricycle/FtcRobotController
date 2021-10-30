@@ -81,9 +81,9 @@ public class MotorEncoderTest extends LinearOpMode {
     double robotAngle = 0;
     double robotTargetAngle = 90;
 
-    double Kp = 0.1;
+    double Kp = 0.015;
     double Ki = 0;
-    double Kd = 0;
+    double Kd = 0.002;
 
     double propError = 0;
     double intError = 0;
@@ -169,17 +169,23 @@ public class MotorEncoderTest extends LinearOpMode {
 
         intError += (robotTargetAngle - getAngle()) * loopTime;
 
-        derError = ((robotTargetAngle - getAngle()) - prevDerError) / loopTime;
+        derError = ((robotTargetAngle - getAngle()) - prevDerError);
         prevDerError = derError;
 
-        double motorPower = propError * Kp + intError * Ki + derError * Kd;
+        derError = ((robotTargetAngle - getAngle()) - prevDerError);
+        prevDerError = robotTargetAngle - getAngle();
+
+        double motorPower = (propError * Kp) + (intError * Ki) + (derError * Kd / loopTime);
 
         rearRightMotor.setPower(motorPower);
         frontLeftMotor.setPower(motorPower);
         frontRightMotor.setPower(motorPower);
         rearLeftMotor.setPower(motorPower);
 
-
+            if (debugFlag) {
+                RobotLog.d("calculateTargetPoint - loopTime %f, robotAngle %f, propError %f, intError %f, derError %f, motorPower %f",
+                        loopTime, getAngle(), propError, intError, derError, motorPower);
+            }
 
         }
 

@@ -84,9 +84,8 @@ public class visionPurePursuit extends LinearOpMode {
         freightDetected = true;
 
         if (freightDetected = true) {
-            freightDistance = 40;
-            freightAngle = 0;
-            freightAnglePark = freightAngle + 90;
+            freightDistance = 30;
+            freightAngle = 45;
 
             robotTargetPoint = myPurePursuitRobotMovement6_Quad2.calculateTargetPoint(freightDistance, freightAngle);
 
@@ -96,38 +95,85 @@ public class visionPurePursuit extends LinearOpMode {
             robotTargetPointY = robotTargetPoint[3];
             robotLookAheadX = robotTargetPoint[4];
             robotLookAheadY = robotTargetPoint[5];
+            freightAnglePark = robotTargetPoint[6];
 
             ArrayList<CurvePoint> allPoints = new ArrayList<>();
-            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 1, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 1, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 1, 0.3, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 0.6, 0.3, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 0.6, 0.3, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 0.6, 0.3, 25, 180, 0.3));
 
-            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, freightAnglePark, 2);
+            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 15, freightAnglePark, 2);
 
         }
 
-        if (freightDetected = true) {
-            freightDistance = 60;
-            freightAngle = -135;
-            freightAnglePark = freightAngle + 90;
-
-            robotTargetPoint = myPurePursuitRobotMovement6_Quad2.calculateTargetPoint(freightDistance, freightAngle);
-
-            robotLocationX = robotTargetPoint[0];
-            robotLocationY = robotTargetPoint[1];
-            robotTargetPointX = robotTargetPoint[2];
-            robotTargetPointY = robotTargetPoint[3];
-            robotLookAheadX = robotTargetPoint[4];
-            robotLookAheadY = robotTargetPoint[5];
-
-            ArrayList<CurvePoint> allPoints = new ArrayList<>();
-            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 1, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 1, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 1, 0.3, 25, 180, 0.3));
-
-            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, freightAnglePark, 2);
-
-        }
+//        if (freightDetected = true) {
+//            freightDistance = 40;
+//            freightAngle = 0;
+//
+//            robotTargetPoint = myPurePursuitRobotMovement6_Quad2.calculateTargetPoint(freightDistance, freightAngle);
+//
+//            robotLocationX = robotTargetPoint[0];
+//            robotLocationY = robotTargetPoint[1];
+//            robotTargetPointX = robotTargetPoint[2];
+//            robotTargetPointY = robotTargetPoint[3];
+//            robotLookAheadX = robotTargetPoint[4];
+//            robotLookAheadY = robotTargetPoint[5];
+//            freightAnglePark = robotTargetPoint[6];
+//
+//            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 1, 0.3, 25, 180, 0.3));
+//
+//            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, freightAnglePark, 2);
+//
+//        }
+//
+//        if (freightDetected = true) {
+//            freightDistance = 60;
+//            freightAngle = -45;
+//
+//            robotTargetPoint = myPurePursuitRobotMovement6_Quad2.calculateTargetPoint(freightDistance, freightAngle);
+//
+//            robotLocationX = robotTargetPoint[0];
+//            robotLocationY = robotTargetPoint[1];
+//            robotTargetPointX = robotTargetPoint[2];
+//            robotTargetPointY = robotTargetPoint[3];
+//            robotLookAheadX = robotTargetPoint[4];
+//            robotLookAheadY = robotTargetPoint[5];
+//            freightAnglePark = robotTargetPoint[6];
+//
+//            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 1, 0.3, 25, 180, 0.3));
+//
+//            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, freightAnglePark, 2);
+//
+//        }
+//
+//        if (freightDetected = true) {
+//            freightDistance = 90;
+//            freightAngle = 200;
+//
+//            robotTargetPoint = myPurePursuitRobotMovement6_Quad2.calculateTargetPoint(freightDistance, freightAngle);
+//
+//            robotLocationX = robotTargetPoint[0];
+//            robotLocationY = robotTargetPoint[1];
+//            robotTargetPointX = robotTargetPoint[2];
+//            robotTargetPointY = robotTargetPoint[3];
+//            robotLookAheadX = robotTargetPoint[4];
+//            robotLookAheadY = robotTargetPoint[5];
+//            freightAnglePark = robotTargetPoint[6];
+//
+//            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//            allPoints.add(new CurvePoint(robotLocationX, robotLocationY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotTargetPointX, robotTargetPointY, 1, 0.3, 25, 180, 0.3));
+//            allPoints.add(new CurvePoint(robotLookAheadX, robotLookAheadY, 1, 0.3, 25, 180, 0.3));
+//
+//            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, freightAnglePark, 2);
+//
+//        }
 
 
 //        if (robotPath == 4) {

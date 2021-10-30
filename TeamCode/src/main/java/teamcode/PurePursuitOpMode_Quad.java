@@ -37,7 +37,7 @@ public class PurePursuitOpMode_Quad extends LinearOpMode {
 //        telemetry.addData("Init", "Completed");
 //        telemetry.update();
 
-        telemetry.addData("Okay press play", "now");
+        telemetry.addData("Init", "Completed");
         telemetry.update();
 
         waitForStart();
@@ -55,8 +55,36 @@ public class PurePursuitOpMode_Quad extends LinearOpMode {
 
         robotPath = 4;
 
+//        // Small Spiral
+//        ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(0, 0, 0.6, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(24, 12, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(48, 26, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(65, 55, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(67, 72, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(53, 84, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(38, 90, 1.0, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(-4, 90, 1.0, 0.3, 25, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 5, 90, 10);
+//
+//        allPoints.add(new CurvePoint(38, 90, 0.6, 0.3, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(-10, 90, 1.0, 0.3, 20, 180, 0.3));
+//        allPoints.add(new CurvePoint(-10, 45, 1.0, 0.3, 20, 180, 0.3));
+//        allPoints.add(new CurvePoint(24, 45, 1.0, 0.3, 20, 180, 0.3));
+//        allPoints.add(new CurvePoint(72, 45, 1.0, 0.3, 20, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, 90, 5);
+
  
         if (robotPath == 4) {
+
+            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(0, 0, 1.0, 0.4, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(0, 100, 1.0, 0.4, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(0, 150, 1.0, 0.4, 25, 180, 0.3));
+
+            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 40, 90, 5);
 
             //Steps
 //            ArrayList<CurvePoint> allPoints = new ArrayList<>();
@@ -84,26 +112,7 @@ public class PurePursuitOpMode_Quad extends LinearOpMode {
 //
 //            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 7, 120, 5);
 
-            // Small Spiral
-            ArrayList<CurvePoint> allPoints = new ArrayList<>();
-            allPoints.add(new CurvePoint(0, 0, 0.6, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(24, 12, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(48, 26, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(65, 55, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(67, 72, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(53, 84, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(38, 90, 1.0, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(-4, 90, 1.0, 0.3, 25, 180, 0.3));
 
-            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 5, 90, 10);
-
-            allPoints.add(new CurvePoint(38, 90, 0.6, 0.3, 25, 180, 0.3));
-            allPoints.add(new CurvePoint(-10, 90, 1.0, 0.3, 20, 180, 0.3));
-            allPoints.add(new CurvePoint(-10, 45, 1.0, 0.3, 20, 180, 0.3));
-            allPoints.add(new CurvePoint(24, 45, 1.0, 0.3, 20, 180, 0.3));
-            allPoints.add(new CurvePoint(72, 45, 1.0, 0.3, 20, 180, 0.3));
-
-            myPurePursuitRobotMovement6_Quad2.followCurve(allPoints, 90, 26, 90, 5);
 //            //Big Spiral to the center
 //            ArrayList<CurvePoint> allPoints = new ArrayList<>();
 //            allPoints.add(new CurvePoint(0, 0, 0.6, 0.3, 25, 180, 0.3));

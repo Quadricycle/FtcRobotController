@@ -5,6 +5,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -176,7 +177,12 @@ public class PurePursuitRobotMovement6 {
     double yPower = 0;
     double zPower = 0;
     double zPowerStart = -0.20;
-    double zPowerIncrease = 0.075;
+    double zPowerIncrease = 0.03;
+    double zPowerFFRampIn = 0;
+    double moveMentSpeedAccel = 0;
+    double accelAdjustMS = 0;
+    double movementSpeedIncrease = 0.2;
+    int p = 0;
 
     boolean useZPID = false;
 
@@ -199,6 +205,8 @@ public class PurePursuitRobotMovement6 {
 
     //for Jusnoor's code
     double prevTickTime = 0;
+    double deltaTickTime = 0;
+    int i = 0;
     int prevLeft = 0, prevRight = 0, prevLeftB = 0, prevRightB = 0;
     private final double wheelDiameter = 3.54331; // For omni wheels we are using
     private final double wheelMountAngle = 45.0; //For current drivetrain
@@ -297,7 +305,7 @@ public class PurePursuitRobotMovement6 {
         //this.frontEncoder.setDirection(DcMotorEx.Direction.REVERSE);
         this.rightEncoder.setDirection(DcMotor.Direction.REVERSE);
         this.leftEncoder.setDirection(DcMotor.Direction.REVERSE);
-        this.backEncoder.setDirection(DcMotor.Direction.REVERSE);
+        this.backEncoder.setDirection(DcMotor.Direction.FORWARD);
 
         xPosition = 0;
         yPosition = 0;
@@ -333,6 +341,8 @@ public class PurePursuitRobotMovement6 {
         displacementYOptical = 0;
 
         prevDistanceToTarget = 20;
+
+        i = 0;
 
         //Initializes motors (obvi)
 //        this.wobbleMotor = hardwareMap.get(DcMotor.class, "Left");
@@ -583,9 +593,9 @@ public class PurePursuitRobotMovement6 {
 
         //robot rotation (each loop) expressed in motor ticks (robot angle, ticks per degree robot rotation...determined through testing for each encoder wheel).
         //double robotRotDisplacementOptFront = robotRotOpt * 0; //21.390 ticks per degree of robot rotation
-        double robotRotDisplacementOptRight = robotRotOpt * 112.695; //21.085each wheel is mounted slightly different on the bot
-        double robotRotDisplacementOptLeft = robotRotOpt * 109.594; //21.318
-        double robotRotDisplacementOptBack = robotRotOpt * (-1.012); //21.093
+        double robotRotDisplacementOptRight = robotRotOpt * 40.554; //112.695...21.085each wheel is mounted slightly different on the bot
+        double robotRotDisplacementOptLeft = robotRotOpt * 46.368; //109.594...21.318
+        double robotRotDisplacementOptBack = robotRotOpt * 10.152; //-1.012...21.093
 
         //measure encoder position
         //frontPositionOptical = frontEncoder.getCurrentPosition();
@@ -659,11 +669,11 @@ public class PurePursuitRobotMovement6 {
         xPositionOpt += robotFieldPositionXOpt;
         yPositionOpt += robotFieldPositionYOpt;
 
-        if (debugFlag) {
-            RobotLog.d("findDisplacementOptical - runTime %f, deltaTime %f, leftDispNoRot %f, rightDispNoRot %f, rearDispNoRot %f, xPositionOptical %f, yPositionOptical %f, xPower %f, yPower %f, zPower %f, robotRotNewOpt %f, robotVectorByOdoOpt %f, robotFieldAngleOpt %f",
-                    currentTime, loopTime, leftDispNoRot, rightDispNoRot, rearDispNoRot, xPositionOpt, yPositionOpt, xPower, yPower, zPower, robotRotNewOpt, robotVectorByOdoOpt, robotFieldAngleOpt);
-
-        }
+//        if (debugFlag) {
+//            RobotLog.d("findDisplacementOptical - runTime %f, deltaTime %f, leftDispNoRot %f, rightDispNoRot %f, rearDispNoRot %f, xPositionOptical %f, yPositionOptical %f, xPower %f, yPower %f, zPower %f, robotRotNewOpt %f, robotVectorByOdoOpt %f, robotFieldAngleOpt %f",
+//                    currentTime, loopTime, leftDispNoRot, rightDispNoRot, rearDispNoRot, xPositionOpt, yPositionOpt, xPower, yPower, zPower, robotRotNewOpt, robotVectorByOdoOpt, robotFieldAngleOpt);
+//
+//        }
 
         //Store the encoder positions and x, y locations in an array and return the values
         double [] positionOptical = {frontPositionOptical, rightPositionOptical, leftPositionOptical, backPositionOptical, xPositionOpt, yPositionOpt, robotVectorByOdoOpt};
@@ -679,8 +689,14 @@ public class PurePursuitRobotMovement6 {
         int rightBCurrent = rearRightMotor.getCurrentPosition();
 
         double tTime = elapsedTime.seconds();
-        double deltaTickTime = tTime - prevTickTime;
-        prevTickTime = tTime;
+        i += 1;
+        if (i < 2 || (tTime - prevTickTime) > 0.25){
+            deltaTickTime = 0.135;
+            prevTickTime = tTime;
+        }else{
+            deltaTickTime = tTime - prevTickTime;
+            prevTickTime = tTime;
+        }
 
         double leftInches = ticksToInches((int) (leftCurrent - prevLeft), wheelDiameter, wheelMountAngle);
         double rightInches = ticksToInches((int) (rightCurrent - prevRight), wheelDiameter, wheelMountAngle);
@@ -772,6 +788,13 @@ public class PurePursuitRobotMovement6 {
         oldTime = startTime;
         distanceToEndPoint = 10;
         NerdPID_PurePursuit.resetIntError();
+        zPowerStart = -0.1; //-0.2
+        zPowerIncrease = 0.03; //0.03
+        accelAdjustMS = 5; //5
+        moveMentSpeedAccel = 0;
+        zPowerFFRampIn = 0; //0
+        p = 0; //0
+
 
         while (this.opmode.opModeIsActive() && !this.opmode.isStopRequested() && !distanceTargetReached(distanceToEndPoint, parkRadius)) {
 
@@ -889,7 +912,7 @@ public class PurePursuitRobotMovement6 {
         oldTime = currentTime;
 //        deltaTime = currentTime - startTime;
 
-        robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
+//        robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
         robotPositionXYOptical = findDisplacementOptical();
 
 //        distanceToTarget = Math.hypot(x - robotPositionXY[0], y - robotPositionXY[1]);
@@ -908,8 +931,11 @@ public class PurePursuitRobotMovement6 {
 //        robotAngleToTarget = MathFunctions.AngleWrapDeg(robotTargetAngle - getAngle());
         motorAngleToTarget = MathFunctions.AngleWrapDeg((robotTargetAngle - 45) - getAngle());
 
-        xPower = Math.cos(motorAngleToTarget * 3.14 / 180) * movementSpeed;
-        yPower = Math.sin(motorAngleToTarget * 3.14 / 180) * movementSpeed;
+        moveMentSpeedAccel += movementSpeed / accelAdjustMS;
+        double movementSpeedWRamp = Math.min(moveMentSpeedAccel, movementSpeed);
+
+        xPower = Math.cos(motorAngleToTarget * 3.14 / 180) * movementSpeedWRamp;
+        yPower = Math.sin(motorAngleToTarget * 3.14 / 180) * movementSpeedWRamp;
 
         double relativeTurnAngle = MathFunctions.AngleWrapDeg(robotTargetAngle - (getAngle() + 90));
 
@@ -928,11 +954,21 @@ public class PurePursuitRobotMovement6 {
             robotTurnSpeed = Range.clip((parkAngleTarget - (getAngle() + 90)) / 30, -1, 1) * turnSpeed;
         }
 
-        double robotTurnSpeedFF = Range.clip((zPowerStart + zPowerIncrease), -0.5, 0);
-        zPowerStart = robotTurnSpeedFF;
+
+        double zPowerStartRamp = zPowerStart / accelAdjustMS;
+
+        if (p < 5){
+            zPowerFFRampIn += zPowerStartRamp;
+            p += 1;
+        }else{
+            zPowerFFRampIn += zPowerIncrease;
+        }
+
+        double zPowerStartFF = Range.clip(zPowerFFRampIn, -0.5, 0);
+
 
 //        zPower = Range.clip(relativeTurnAngle / 30, -0.3, 0.3) * robotTurnSpeed;
-        zPower = Range.clip((robotTurnSpeed + zPowerStart), -0.5, 0.5);
+        zPower = Range.clip((robotTurnSpeed + zPowerStartFF), -0.5, 0.5);
 
         //Second calculate motor speeds for angular (z) motion
 
@@ -976,8 +1012,8 @@ public class PurePursuitRobotMovement6 {
 //            }
 
         if (debugFlag) {
-            RobotLog.d("goToPositionPP - runTime %f, deltaTime %f,robotPositionXY[0] %f, robotPositionXY[1] %f, distanceToTarget %f, robotAngleToTarget %f, robotVectorByOdo %f, robotVectorMag %f, robotFieldAngle %f, omniDriveAngle %f, xPower %f, yPower %f, zPower %f, relativeTurnAngle %f, motorAngleToTarget %f, robotTargetAngle %f, getAngle() %f, frontLeftMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorSpeed %f, frontRightMotorPower%f",
-                    currentTime, deltaTime, robotPositionXYOptical[4], robotPositionXYOptical[5], distanceToTarget, robotAngleToTarget, robotVectorByOdo, robotVectorMag, robotFieldAngle, omniDriveAngle, xPower, yPower, zPower, relativeTurnAngle, motorAngleToTarget, robotTargetAngle, getAngle(), frontLeftMotorSpeed, motorSpeedCommand[0], frontRightMotorSpeed, motorSpeedCommand[1]);
+            RobotLog.d("goToPositionPP - runTime %f, deltaTime %f, loopTime %f, robotTargetAngle %f, motorAngleToTarget %f, distanceToTarget %f, robotVectorByOdoOpt %f, robotVectorMagOpt %f, robotFieldAngleOpt %f, xPower %f, yPower %f, zPower %f, relativeTurnAngle %f, getAngle() %f",
+                    currentTime, deltaTime, loopTime, robotTargetAngle, motorAngleToTarget, distanceToTarget, robotVectorByOdoOpt, robotVectorMagOpt, robotFieldAngleOpt, xPower, yPower, zPower, relativeTurnAngle, getAngle());
         }
 
 
@@ -1009,7 +1045,7 @@ public class PurePursuitRobotMovement6 {
         oldTime = currentTime;
 //        deltaTime = currentTime - startTime;
 
-        robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
+//        robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
 
         robotPositionXYOptical = findDisplacementOptical();
 
