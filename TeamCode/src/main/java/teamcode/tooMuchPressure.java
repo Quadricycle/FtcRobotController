@@ -287,10 +287,10 @@ public class tooMuchPressure extends LinearOpMode {
         xPositionOpt = 0;
         yPositionOpt = 0;
 
-        targetPositionFLM = frontLeftMotor.getCurrentPosition() - 3000;
-        targetPositionFRM = frontRightMotor.getCurrentPosition() + 3000;
-        targetPositionRLM = rearLeftMotor.getCurrentPosition() - 3000;
-        targetPositionRRM = rearRightMotor.getCurrentPosition() + 3000;
+        targetPositionFLM = frontLeftMotor.getCurrentPosition() - 2000;
+        targetPositionFRM = frontRightMotor.getCurrentPosition() + 2000;
+        targetPositionRLM = rearLeftMotor.getCurrentPosition() - 2000;
+        targetPositionRRM = rearRightMotor.getCurrentPosition() + 2000;
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -319,9 +319,9 @@ public class tooMuchPressure extends LinearOpMode {
             rearRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             rearRightMotor.setPower(1.0);
-            frontLeftMotor.setPower(-1.0);
+            frontLeftMotor.setPower(1.0);
             frontRightMotor.setPower(1.0);
-            rearLeftMotor.setPower(-1.0);
+            rearLeftMotor.setPower(1.0);
 
             robotPositionXY = findDisplacementOptical();
 

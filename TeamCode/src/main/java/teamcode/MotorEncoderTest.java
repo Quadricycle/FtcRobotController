@@ -81,9 +81,9 @@ public class MotorEncoderTest extends LinearOpMode {
     double robotAngle = 0;
     double robotTargetAngle = 90;
 
-    double Kp = 0.015;
+    double Kp = 0.007;
     double Ki = 0;
-    double Kd = 0.002;
+    double Kd = 0.001;
 
     double propError = 0;
     double intError = 0;
@@ -168,9 +168,6 @@ public class MotorEncoderTest extends LinearOpMode {
         propError = (robotTargetAngle - getAngle());
 
         intError += (robotTargetAngle - getAngle()) * loopTime;
-
-        derError = ((robotTargetAngle - getAngle()) - prevDerError);
-        prevDerError = derError;
 
         derError = ((robotTargetAngle - getAngle()) - prevDerError);
         prevDerError = robotTargetAngle - getAngle();
