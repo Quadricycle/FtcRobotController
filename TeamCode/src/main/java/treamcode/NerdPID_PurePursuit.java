@@ -98,7 +98,7 @@ public class NerdPID_PurePursuit {
     public static double zPowerDrive (double targetAngleDrive, double gyroAngleDrive, double deltaTimePIDDrive){
 
         double kPD = 0.005; //0.010
-        double kID = 0.003; //0.005
+        double kID = 0.00; //0.005
         double kDD = 0.000; //0.000
 
         //calculate error (Proportional)
@@ -175,7 +175,7 @@ public class NerdPID_PurePursuit {
 
     public static double zPowerPark (double targetAnglePark, double gyroAnglePark, double deltaTimePIDPark){
 
-        double kPP = 0.007; //0.005
+        double kPP = 0.005; //0.005
         double kIP = 0.003; //0.002
         double kDP = 0.000; //0.000
 
@@ -233,7 +233,7 @@ public class NerdPID_PurePursuit {
     }
 
     public static double shortParkPID (double robotDistanceToTarget, double prevRobotDistanceToTarget, double deltaTimePIDMS){
-        double kPSP = 0.033;
+        double kPSP = 0.020;//0.033
         double kISP = 0.250;
         double kDSP = 0.010;
 

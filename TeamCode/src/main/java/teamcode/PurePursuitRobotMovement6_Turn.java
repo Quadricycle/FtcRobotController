@@ -4,8 +4,6 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -31,7 +29,7 @@ import treamcode.NerdVelocityFollowing;
 
 import java.util.ArrayList;
 
-public class PurePursuitRobotMovement6 {
+public class PurePursuitRobotMovement6_Turn {
 
     private boolean debugFlag=false;
 
@@ -100,6 +98,8 @@ public class PurePursuitRobotMovement6 {
     double leftPositionOptical = 0;
     double backPositionOptical = 0;
     double [] robotPositionXYOptical;
+//    double robotPositionXStart = 0;
+//    double robotPositionYStart = 0;
 
     double omniDriveFactorOpt = 0;
 
@@ -178,6 +178,9 @@ public class PurePursuitRobotMovement6 {
     double zPower = 0;
     double zPowerStart = -0.25;
     double zPowerIncrease = 0.075;
+    public double angleStart = 0;
+    double robotFaceAngle = 0;
+    double angleIncrement = 0;
 
     boolean useZPID = false;
 
@@ -223,7 +226,7 @@ public class PurePursuitRobotMovement6 {
      *               NerdBOT takes an opmode object so that it can get the hardwareMap.     *
      */
 
-    public PurePursuitRobotMovement6(LinearOpMode opmode) {
+    public PurePursuitRobotMovement6_Turn(LinearOpMode opmode) {
         this.opmode = opmode;
         this.hardwareMap = opmode.hardwareMap;
     }
@@ -246,10 +249,10 @@ public class PurePursuitRobotMovement6 {
         this.rearLeftMotor = this.hardwareMap.get(DcMotor.class, "Rear_Left_Motor");
         this.rearRightMotor = this.hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
 
-        this.frontEncoder = this.hardwareMap.get(DcMotor.class, "Front");
-        this.rightEncoder = this.hardwareMap.get(DcMotor.class, "Right");
-        this.leftEncoder = this.hardwareMap.get(DcMotor.class, "Left");
-        this.backEncoder = this.hardwareMap.get(DcMotor.class, "Back");
+        this.frontEncoder = this.hardwareMap.get(DcMotor.class, "leftArmMotor");
+        this.rightEncoder = this.hardwareMap.get(DcMotor.class, "rightArmMotor");
+        this.leftEncoder = this.hardwareMap.get(DcMotor.class, "Ducky_Disk");
+        this.backEncoder = this.hardwareMap.get(DcMotor.class, "Intake");
 
 //        this.wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
 //        this.indexingServo = hardwareMap.get(Servo.class, "indexingServo");
@@ -298,7 +301,7 @@ public class PurePursuitRobotMovement6 {
         //this.frontEncoder.setDirection(DcMotorEx.Direction.REVERSE);
         this.rightEncoder.setDirection(DcMotor.Direction.REVERSE);
         this.leftEncoder.setDirection(DcMotor.Direction.REVERSE);
-        this.backEncoder.setDirection(DcMotor.Direction.FORWARD);
+        this.backEncoder.setDirection(DcMotor.Direction.REVERSE);
 
         xPosition = 0;
         yPosition = 0;
@@ -767,14 +770,17 @@ public class PurePursuitRobotMovement6 {
         return  onDistanceTarget;
     }
 
-    public void followCurve(ArrayList<CurvePoint> allPoints, double followAngle, double distanceToPark, double parkAngleTarget, double parkRadius){
+    public void followCurve(ArrayList<CurvePoint> allPoints, double zPowerFF, double distanceToPark, double parkAngleTarget, double parkRadius){
 
         startTime = elapsedTime.seconds();
         oldTime = startTime;
         distanceToEndPoint = 10;
         NerdPID_PurePursuit.resetIntError();
-        zPowerStart = -0.25;
+        zPowerStart = zPowerFF;
         zPowerIncrease = 0.075;
+        angleStart = getAngle() + 90;
+        angleIncrement = ((parkAngleTarget - angleStart) / (distanceToEndPoint - distanceToPark));
+        robotFaceAngle = angleStart;
 
         while (this.opmode.opModeIsActive() && !this.opmode.isStopRequested() && !distanceTargetReached(distanceToEndPoint, parkRadius)) {
 
@@ -791,6 +797,9 @@ public class PurePursuitRobotMovement6 {
             CurvePoint endPoint = getEndPoint(allPoints, new PointPP(robotPositionXYV[4], robotPositionXYV[5]),
                     allPoints.get(0).followDistance);
 
+            CurvePoint startPath = getStartPath(allPoints, new PointPP(robotPositionXYV[4], robotPositionXYV[5]),
+                    allPoints.get(0).followDistance);
+
             ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
 
             distanceToEndPoint = Math.hypot(endPoint.x - robotPositionXYV[4], endPoint.y - robotPositionXYV[5]);
@@ -799,7 +808,7 @@ public class PurePursuitRobotMovement6 {
                 goToPositionEndPP(endPoint.x, endPoint.y, 1.0, parkAngleTarget, 0.2, distanceToPark);
             }
             else {
-                goToPositionPP(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed, parkAngleTarget);
+                goToPositionPP(followMe.x, followMe.y, followMe.moveSpeed, zPowerFF, followMe.turnSpeed, parkAngleTarget, distanceToPark, startPath.x, startPath.y, endPoint.x, endPoint.y);
             }
 
 //            if (debugFlag) {
@@ -863,8 +872,16 @@ public class PurePursuitRobotMovement6 {
         return endPoint;
     }
 
+    private CurvePoint getStartPath(ArrayList<CurvePoint> pathPoints, PointPP robotLocation, double followRadius){
 
-    public void goToPositionPP(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed, double parkAngleTarget){
+        CurvePoint startPath = new CurvePoint(pathPoints.get(0));
+
+        return startPath;
+    }
+
+
+    public void goToPositionPP(double x, double y, double movementSpeed, double zPowerFeedForward, double turnSpeed, double parkAngleTarget, double parkDistance,
+                               double robotPositionXStart, double robotPositionYStart, double endPointX, double endPointY){
 
         currentTime = elapsedTime.seconds();
         loopTime = currentTime - oldTime;
@@ -895,23 +912,46 @@ public class PurePursuitRobotMovement6 {
 
         double relativeTurnAngle = MathFunctions.AngleWrapDeg(robotTargetAngle - (getAngle() + 90));
 
-        if (Math.abs(parkAngleTarget - (getAngle() + 90)) > 90){
-            useZPID = false;
-        }
-        else if (Math.abs(parkAngleTarget - (getAngle() + 90)) < 80){
-            useZPID = true;
+//        for (int i = 0; i < 2; i++){
+//            angleIncrement = ((parkAngleTarget - angleStart) / (distanceToEndPoint - parkDistance));
+//            robotFaceAngle = angleStart;
+//            robotPositionXStart = robotPositionXYOptical[4];
+//            robotPositionYStart = robotPositionXYOptical[5];
+//        }
+
+        double distanceFromStart = Math.hypot(robotPositionXYOptical[4] - robotPositionXStart, robotPositionXYOptical[5] - robotPositionYStart);
+        double distanceAtStart = Math.hypot(endPointX - robotPositionXStart, endPointY - robotPositionYStart);
+        angleIncrement = (parkAngleTarget - angleStart) / (distanceAtStart - parkDistance);
+
+        if (angleStart < parkAngleTarget){
+            robotFaceAngle = Range.clip(angleIncrement * distanceFromStart + angleStart, angleStart, parkAngleTarget);
+        }else if (angleStart > parkAngleTarget){
+            robotFaceAngle = Range.clip(angleIncrement * distanceFromStart + angleStart, parkAngleTarget, angleStart);
         }
 
-        if (useZPID){
-            zPIDAngle = 90 + getAngle();
-            robotTurnSpeed = NerdPID_PurePursuit.zPowerDrive(parkAngleTarget, zPIDAngle, loopTime);
-        }
-        else if (!useZPID){
-            robotTurnSpeed = Range.clip((parkAngleTarget - (getAngle() + 90)) / 30, -1, 1) * turnSpeed;
-        }
+        zPIDAngle = 90 + getAngle();
+        robotTurnSpeed = NerdPID_PurePursuit.zPowerDrive(robotFaceAngle, zPIDAngle, loopTime);
+
+//        if (Math.abs(parkAngleTarget - (getAngle() + 90)) > 90){
+//            useZPID = false;
+//        }
+//        else if (Math.abs(parkAngleTarget - (getAngle() + 90)) < 80){
+//            useZPID = true;
+//        }
+//
+//        if (useZPID){
+//            zPIDAngle = 90 + getAngle();
+//            robotTurnSpeed = NerdPID_PurePursuit.zPowerDrive(parkAngleTarget, zPIDAngle, loopTime);
+//        }
+//        else if (!useZPID){
+//            robotTurnSpeed = Range.clip((parkAngleTarget - (getAngle() + 90)) / 30, -1, 1) * turnSpeed;
+//        }
 
         double robotTurnSpeedFF = Range.clip((zPowerStart + zPowerIncrease), -0.5, 0);
         zPowerStart = robotTurnSpeedFF;
+
+
+
 
 //        zPower = Range.clip(relativeTurnAngle / 30, -0.3, 0.3) * robotTurnSpeed;
         zPower = Range.clip((robotTurnSpeed + zPowerStart), -0.3, 0.3);
@@ -949,28 +989,16 @@ public class PurePursuitRobotMovement6 {
         frontRightMotor.setPower(motorSpeedCommand[1]);
         rearLeftMotor.setPower(motorSpeedCommand[2]);
 
-
-
-
-//            if (debugFlag) {
-//                RobotLog.d("goToPositionPP - timeSinceStart %f, robotTargetAngle %f, xPower %f, yPower %f , zPower %f, frontLeftMotorPower %f, rearRightMotorPower %f , frontRightMotorPower %f, rearLeftMotorPower %f, frontLeftMotorTicks %f, rearRightMotorTicks %f , frontRightMotorTicks %f , rearLeftMotorTicks %f, xPosition %f, yPosition %f, robotRot %f, robotRotDisplacement %f, robotAngleToTarget %f, robotVectorByOdoF %f, robotVectorByOdoR %f, frontVectorMag %f, rearVectorMag %f",
-//                        deltaTime, robotTargetAngle, xPower, yPower, zPower, frontLeftMotorPower, rearRightMotorPower, frontRightMotorPower, rearLeftMotorPower, lfDisplacement, rrDisplacement, rfDisplacement, lrDisplacement, xPosition, yPosition, robotRot, robotRotDisplacement, robotAngleToTarget, robotVectorByOdoF, robotVectorByOdoR, frontVectorMag, rearVectorMag);
-//            }
-
         if (debugFlag) {
-            RobotLog.d("goToPositionPP - runTime %f, deltaTime %f,robotPositionXY[0] %f, robotPositionXY[1] %f, distanceToTarget %f, robotAngleToTarget %f, robotVectorByOdo %f, robotVectorMag %f, robotFieldAngle %f, omniDriveAngle %f, xPower %f, yPower %f, zPower %f, relativeTurnAngle %f, motorAngleToTarget %f, robotTargetAngle %f, getAngle() %f, frontLeftMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorSpeed %f, frontRightMotorPower%f",
-                    currentTime, deltaTime, robotPositionXYOptical[4], robotPositionXYOptical[5], distanceToTarget, robotAngleToTarget, robotVectorByOdo, robotVectorMag, robotFieldAngle, omniDriveAngle, xPower, yPower, zPower, relativeTurnAngle, motorAngleToTarget, robotTargetAngle, getAngle(), frontLeftMotorSpeed, motorSpeedCommand[0], frontRightMotorSpeed, motorSpeedCommand[1]);
+            RobotLog.d("goToPositionPP - runTime %f, deltaTime %f,angleIncrement %f, parkAngleTarget %f, angleStart %f, distanceAtStart %f, parkDistance %f, robotFaceAngle %f, robotPositionXStart %f, robotPositionYStart %f, distanceFromStart %f, robotVectorByOdo %f, robotVectorMag %f, robotFieldAngle %f, omniDriveAngle %f, xPower %f, yPower %f, zPower %f, relativeTurnAngle %f, motorAngleToTarget %f, robotTargetAngle %f, getAngle() %f, frontLeftMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorSpeed %f, frontRightMotorPower%f",
+                    currentTime, deltaTime, angleIncrement, parkAngleTarget, angleStart, distanceAtStart, parkDistance, robotFaceAngle, robotPositionXStart, robotPositionYStart, distanceFromStart, robotVectorByOdo, robotVectorMag, robotFieldAngle, omniDriveAngle, xPower, yPower, zPower, relativeTurnAngle, motorAngleToTarget, robotTargetAngle, getAngle(), frontLeftMotorSpeed, motorSpeedCommand[0], frontRightMotorSpeed, motorSpeedCommand[1]);
         }
 
 
-
-
-
-
-//        frontLeftMotor.setPower(0);
-//        frontRightMotor.setPower(0);
-//        rearLeftMotor.setPower(0);
-//        rearRightMotor.setPower(0);
+//        if (debugFlag) {
+//            RobotLog.d("goToPositionPP - runTime %f, deltaTime %f,robotPositionXY[0] %f, robotPositionXY[1] %f, distanceToTarget %f, robotFaceAngle %f, robotAngleToTarget %f, robotVectorByOdo %f, robotVectorMag %f, robotFieldAngle %f, omniDriveAngle %f, xPower %f, yPower %f, zPower %f, relativeTurnAngle %f, motorAngleToTarget %f, robotTargetAngle %f, getAngle() %f, frontLeftMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorSpeed %f, frontRightMotorPower%f",
+//                    currentTime, deltaTime, robotPositionXYOptical[4], robotPositionXYOptical[5], distanceToTarget, robotFaceAngle, robotAngleToTarget, robotVectorByOdo, robotVectorMag, robotFieldAngle, omniDriveAngle, xPower, yPower, zPower, relativeTurnAngle, motorAngleToTarget, robotTargetAngle, getAngle(), frontLeftMotorSpeed, motorSpeedCommand[0], frontRightMotorSpeed, motorSpeedCommand[1]);
+//        }
 
     }
 
@@ -1029,7 +1057,7 @@ public class PurePursuitRobotMovement6 {
         double relativeTurnAngle = MathFunctions.AngleWrapDeg(targetAngleForPark - 90 - getAngle());
         double targetParkAngle = targetAngleForPark;
         zPIDAngle = 90 + getAngle();
-        zPower = NerdPID_PurePursuit.zPowerPark(targetParkAngle, zPIDAngle, loopTime);
+        zPower = Range.clip(NerdPID_PurePursuit.zPowerPark(targetParkAngle, zPIDAngle, loopTime), -0.3, 0.3);
 
         frontLeftMotorPower = -xPower + zPower;
         rearRightMotorPower = xPower + zPower;
